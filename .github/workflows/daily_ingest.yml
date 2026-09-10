@@ -1,51 +1,52 @@
-name: Daily AQ Ingest
+# Comment out old project auto ingest so it stops eating up all my LFS usage.
+# name: Daily AQ Ingest
 
-on:
-  schedule:
-    - cron: "30 18 * * *"   # 1:30 PM CDT (UTC-5) every day
-  workflow_dispatch:         # Allow manual trigger from the GitHub Actions tab
+# on:
+#   schedule:
+#     - cron: "30 18 * * *"   # 1:30 PM CDT (UTC-5) every day
+#   workflow_dispatch:         # Allow manual trigger from the GitHub Actions tab
 
-permissions:
-  contents: write            # Needed so the workflow can push commits back to the repo
+# permissions:
+#   contents: write            # Needed so the workflow can push commits back to the repo
 
-jobs:
-  ingest:
-    runs-on: ubuntu-latest
+# jobs:
+#   ingest:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          lfs: true   # uszips.csv is stored in Git LFS -- must download the real file
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+#         with:
+#           lfs: true   # uszips.csv is stored in Git LFS -- must download the real file
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: "pip"
+#       - name: Set up Python 3.12
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: "3.12"
+#           cache: "pip"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+#       - name: Install dependencies
+#         run: pip install -r requirements.txt
 
-      - name: Run daily ingest
-        env:
-          OPENMETEO_API_KEY: ${{ secrets.OPENMETEO_API_KEY }}
-        run: python run_pipeline.py --cities "Houston,TX"
+#       - name: Run daily ingest
+#         env:
+#           OPENMETEO_API_KEY: ${{ secrets.OPENMETEO_API_KEY }}
+#         run: python run_pipeline.py --cities "Houston,TX"
 
-      - name: Commit and push new data
-        run: |
-          set -euo pipefail
+#       - name: Commit and push new data
+#         run: |
+#           set -euo pipefail
 
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+#           git config user.name  "github-actions[bot]"
+#           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Stage outputs FIRST (before any rebase) so there are no unstaged changes
-          git add state.json
-          git add -f data/
+#           # Stage outputs FIRST (before any rebase) so there are no unstaged changes
+#           git add state.json
+#           git add -f data/
 
-          # Commit only if staged changes exist
-          git diff --staged --quiet || git commit -m "chore: daily ingest $(date -u +%F)"
+#           # Commit only if staged changes exist
+#           git diff --staged --quiet || git commit -m "chore: daily ingest $(date -u +%F)"
 
-          # Now pull --rebase is safe: working tree is clean
-          git pull --rebase origin master
-          git push origin master
+#           # Now pull --rebase is safe: working tree is clean
+#           git pull --rebase origin master
+#           git push origin master
